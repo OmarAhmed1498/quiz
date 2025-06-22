@@ -45,7 +45,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           
           script: |
-            https://github.com/OmarAhmed1498/quiz.git
+            git clone https://github.com/OmarAhmed1498/quiz.git
             cd quiz
             sudo docker compose down
             sudo docker compose pull
