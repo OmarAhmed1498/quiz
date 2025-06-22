@@ -38,13 +38,21 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/quiz-app:frontend
 
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            #!/bin/bash
+        #uses: appleboy/ssh-action@v1.0.3
+        #with:
+          #host: ${{ secrets.EC2_HOST }}
+          #username: ${{ secrets.EC2_USER }}
+          #key: ${{ secrets.EC2_SSH_KEY }}
+        env:
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+            echo "$EC2_SSH_KEY" > key.pem
+            chmod 600 key.pem
+            ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+            ssh -i key.pem -o StrictHostKeyChecking=no "$EC2_USER@$EC2_HOST" << EOF
+            echo "Connected to EC2"    
             ls
             sudo -i
             whoami
