@@ -3,6 +3,7 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    image: crossnet9814/quiz-app:backend
     container_name: quiz_backend
     ports:
       - "5000:5000"
@@ -11,6 +12,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: crossnet9814/quiz-app:frontend
     container_name: quiz_frontend
     ports:
       - "3000:80"
