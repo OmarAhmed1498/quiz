@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: quiz_backend
+    ports:
+      - "5000:5000"
+    expose:
+      - "5000"
+
+  frontend:
+    build: ./frontend
+    container_name: quiz_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend

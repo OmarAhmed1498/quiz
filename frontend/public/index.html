@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/assets/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-4">Fun Quiz</h1>
+        <div id="score" class="text-lg mb-4">Score: 0</div>
+        <div id="question" class="text-lg mb-6"></div>
+        <div id="answers" class="space-y-4"></div>
+        <div id="loading" class="text-center hidden">Loading...</div>
+    </div>
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Quiz Over!</h2>
+            <p id="result-text" class="mb-4"></p>
+            <button id="retry-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Retry</button>
+        </div>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+
+        async function fetchWithRetry(url, options = {}, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed: ${error.message}`);
+                    if (i < retries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+        }
+
+        async function startQuiz() {
+            document.getElementById('loading').classList.remove('hidden');
+            try {
+                const data = await fetchWithRetry(`${API_URL}/api/start_quiz`);
+                document.getElementById('loading').classList.add('hidden');
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                displayQuestion(data);
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                alert(`Unable to load quiz: ${error.message}. Please check console for details.`);
+                console.error('Start quiz error:', error);
+            }
+        }
+
+        function displayQuestion(data) {
+            document.getElementById('question').innerText = data.question;
+            document.getElementById('score').innerText = `Score: ${data.score}`;
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+            data.answers.forEach(answer => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600';
+                btn.innerText = answer;
+                btn.onclick = () => submitAnswer(answer);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        async function submitAnswer(answer) {
+            try {
+                const data = await fetchWithRetry(`${API_URL}/api/answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answer })
+                });
+                if (data.correct && !data.finished) {
+                    displayQuestion(data);
+                } else if (data.finished) {
+                    showResult(`Congratulations! You finished the quiz with a score of ${data.score}!`);
+                } else {
+                    showResult(`Game Over! Your score: ${data.score}. Correct answer was: ${data.correct_answer}`);
+                }
+            } catch (error) {
+                alert(`Failed to submit answer: ${error.message}`);
+                console.error('Submit answer error:', error);
+            }
+        }
+
+        function showResult(message) {
+            document.getElementById('result-text').innerText = message;
+            document.getElementById('result-modal').style.display = 'flex';
+        }
+
+        document.getElementById('retry-btn').onclick = () => {
+            document.getElementById('result-modal').style.display = 'none';
+            startQuiz();
+        };
+
+        startQuiz();
+    </script>
+</body>
+</html>
