@@ -45,7 +45,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo -i 
-            cd quiz
+            cd /root/quiz
             docker compose down
             docker compose pull
             docker compose up -d
