@@ -44,7 +44,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/quiz
+            sudo -i 
+            cd quiz
             docker compose down
             docker compose pull
             docker compose up -d
