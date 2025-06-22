@@ -38,27 +38,16 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/quiz-app:frontend
 
       - name: Deploy to EC2 via SSH
-        #uses: appleboy/ssh-action@v1.0.3
-        #with:
-          #host: ${{ secrets.EC2_HOST }}
-          #username: ${{ secrets.EC2_USER }}
-          #key: ${{ secrets.EC2_SSH_KEY }}
-        env:
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-        run: |
-            echo "$EC2_SSH_KEY" > key.pem
-            chmod 600 key.pem
-            
-            ssh -i key.pem "$EC2_USER@$EC2_HOST" 
-            echo "Connected to EC2"    
-            ls
-            sudo -i
-            whoami
-            ls
-            cd /root/quiz
-            docker compose down
-            docker compose pull
-            docker compose up -d
-            docker system prune -f
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          
+          script: |
+            https://github.com/OmarAhmed1498/quiz.git
+            cd quiz
+            sudo docker compose down
+            sudo docker compose pull
+            sudo docker compose up -d
+            sudo docker system prune -f
